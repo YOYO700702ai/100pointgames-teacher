@@ -84,22 +84,23 @@ body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg,#
       <p class="hint" style="margin-bottom:12px">
         先複製<a href="https://docs.google.com/spreadsheets/d/1_TEMPLATE_LINK" target="_blank">這份範本試算表</a>，換成你的題目，再點「檔案 → 共用 → 發布到網路 → CSV」複製網址貼到下方。
       </p>
+      <p class="hint" style="color:#e91e8c;margin-bottom:8px">💡 若不填寫，將使用預設題庫</p>
       <div class="fields">
         <div class="field">
-          <label>🎋 千卷墨林 CSV 網址</label>
-          <input type="url" id="csvChinese" placeholder="">
+          <label>🎋 千卷墨林 CSV 網址（國語科）</label>
+          <input type="url" id="csvChinese" placeholder="若無提供題庫網址則為預設題庫">
         </div>
         <div class="field">
-          <label>🔥 元素港灣 CSV 網址</label>
-          <input type="url" id="csvScience" placeholder="">
+          <label>🔥 元素港灣 CSV 網址（自然科）</label>
+          <input type="url" id="csvScience" placeholder="若無提供題庫網址則為預設題庫">
         </div>
         <div class="field">
-          <label>🏺 編年廢墟 CSV 網址</label>
-          <input type="url" id="csvSocial" placeholder="">
+          <label>🏺 編年廢墟 CSV 網址（社會科）</label>
+          <input type="url" id="csvSocial" placeholder="若無提供題庫網址則為預設題庫">
         </div>
         <div class="field">
-          <label>❄️ 單字凍原 CSV 網址</label>
-          <input type="url" id="csvEnglish" placeholder="">
+          <label>❄️ 單字凍原 CSV 網址（英語科）</label>
+          <input type="url" id="csvEnglish" placeholder="若無提供題庫網址則為預設題庫">
         </div>
       </div>
     </div>
@@ -178,16 +179,19 @@ function generate() {
   clearError();
   const className   = document.getElementById('className').value.trim();
   const adminPw     = document.getElementById('adminPw').value.trim();
-  const csvChinese  = document.getElementById('csvChinese').value.trim();
-  const csvScience  = document.getElementById('csvScience').value.trim();
-  const csvSocial   = document.getElementById('csvSocial').value.trim();
-  const csvEnglish  = document.getElementById('csvEnglish').value.trim();
+  const DEFAULT_CSV_CHINESE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQkJiMnZSApC9QGpRkUajkGpB4zu3_vlRRJUnnYqQUT8mwpVC9p5feKEqv0c24OjdnWyW9BBaCv_AEp/pub?output=csv";
+  const DEFAULT_CSV_ENGLISH = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTYawqE63-aJdaU9HGx3R2hZ3gXHvQpCTXOMqW9uordFM944NwST6a06u30rj-CSTGT8JpYhynbx-Py/pub?output=csv";
+  const DEFAULT_CSV_SOCIAL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRDucdYQZqNCJiBoFnl8aJZhQpHwLnotubA4vALBeh_ckKQQtu2xRXjb6W2cebPWpzi9a53zRZ665y0/pub?output=csv";
+  const DEFAULT_CSV_SCIENCE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSuoTtan8hFBbXnaumdMOmqDsQrhlkGJlvEdgchTHxdG5G63utIpW1jtyKhkdPMT_rTaB28YWQIP3uk/pub?output=csv";
+
+  const csvChinese  = document.getElementById('csvChinese').value.trim() || DEFAULT_CSV_CHINESE;
+  const csvScience  = document.getElementById('csvScience').value.trim() || DEFAULT_CSV_SCIENCE;
+  const csvSocial   = document.getElementById('csvSocial').value.trim()  || DEFAULT_CSV_SOCIAL;
+  const csvEnglish  = document.getElementById('csvEnglish').value.trim() || DEFAULT_CSV_ENGLISH;
   const fbRaw       = document.getElementById('firebaseConfig').value.trim();
 
   if (!className) return showError('請填寫班級名稱');
   if (!adminPw)   return showError('請設定管理員密碼');
-  if (!csvChinese || !csvScience || !csvSocial || !csvEnglish)
-    return showError('請填寫四個科目的 CSV 網址');
   if (!fbRaw) return showError('請貼上 Firebase 設定');
 
   const fb = parseFirebaseConfig(fbRaw);
