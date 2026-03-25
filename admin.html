@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理後台｜亞德雷大陸</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+#loginScreen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; gap:14px; }
+#loginScreen h1 { font-size:1.4rem; color:#94a3b8; }
+#loginScreen input { padding:11px 18px; border-radius:10px; border:2px solid #334155; background:#1e293b; color:#e2e8f0; font-size:1rem; width:240px; text-align:center; outline:none; }
+#loginScreen input:focus { border-color:#6366f1; }
+#loginScreen button { padding:9px 28px; background:#6366f1; color:white; border:none; border-radius:10px; font-size:0.95rem; font-weight:bold; cursor:pointer; }
+#loginError { color:#f87171; font-size:0.85rem; }
+#noConfig { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; gap:10px; color:#64748b; }
+#noConfig a { color:#818cf8; }
+
+#mainScreen { display:none; padding:24px; }
+.header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px; }
+.header h1 { font-size:1.3rem; font-weight:bold; color:#a5b4fc; }
+.stats { display:flex; gap:14px; margin-bottom:20px; flex-wrap:wrap; }
+.stat-card { background:#1e293b; border-radius:12px; padding:14px 20px; border:1px solid #334155; flex:1; min-width:120px; }
+.stat-card .label { font-size:0.72rem; color:#64748b; margin-bottom:3px; }
+.stat-card .value { font-size:1.5rem; font-weight:bold; }
+.toolbar { display:flex; gap:8px; margin-bottom:14px; align-items:center; flex-wrap:wrap; }
+.toolbar input { padding:7px 12px; border-radius:8px; border:1px solid #334155; background:#1e293b; color:#e2e8f0; font-size:0.85rem; flex:1; min-width:160px; }
+.btn { padding:7px 16px; border-radius:8px; border:none; font-size:0.82rem; font-weight:bold; cursor:pointer; }
+.btn:hover { opacity:0.8; }
+.btn-danger { background:#ef4444; color:white; }
+.btn-refresh { background:#0ea5e9; color:white; }
+.btn-logout { background:#334155; color:#94a3b8; }
+.table-wrap { overflow-x:auto; border-radius:12px; border:1px solid #334155; }
+table { width:100%; border-collapse:collapse; font-size:0.83rem; }
+thead { background:#1e293b; }
+thead th { padding:11px 13px; text-align:left; color:#94a3b8; font-weight:600; white-space:nowrap; }
+tbody tr { border-top:1px solid #1e293b; }
+tbody tr:hover { background:#1e293b; }
+tbody td { padding:9px 13px; vertical-align:middle; }
+.badge { display:inline-block; padding:2px 8px; border-radius:99px; font-size:0.73rem; font-weight:bold; }
+.badge-lv { background:#312e81; color:#a5b4fc; }
+.badge-gold { background:#422006; color:#fbbf24; }
+.zone-dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:2px; }
+.dot-on { background:#22c55e; } .dot-off { background:#374151; }
+.del-btn { padding:3px 10px; background:#7f1d1d; color:#fca5a5; border:1px solid #991b1b; border-radius:6px; cursor:pointer; font-size:0.78rem; }
+.del-btn:hover { background:#991b1b; }
+.select-cb { width:15px; height:15px; cursor:pointer; accent-color:#6366f1; }
+.empty,.loading { text-align:center; padding:36px; color:#475569; }
+#deleteCount { color:#f87171; font-size:0.82rem; }
+</style>
+</head>
+<body>
+
+<div id="noConfig" style="display:none">
+  <div style="font-size:2rem">⚠️</div>
+  <div>找不到設定，請先到 <a href="index.html">設定頁面</a> 產生你的專屬網址</div>
+</div>
+
+<div id="loginScreen">
+  <h1>🏰 班級管理後台</h1>
+  <div id="classNameDisplay" style="color:#6366f1;font-weight:bold;font-size:1rem"></div>
+  <input type="password" id="pwInput" placeholder="輸入管理員密碼" onkeydown="if(event.key==='Enter')login()">
+  <button onclick="login()">進入</button>
+  <span id="loginError"></span>
+</div>
+
+<div id="mainScreen">
+  <div class="header">
+    <h1>🏰 <span id="headerClass"></span>・管理後台</h1>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span id="lastRefresh" style="font-size:0.8rem;color:#64748b;align-self:center"></span>
+      <button class="btn btn-refresh" onclick="loadData()">🔄 重新整理</button>
+      <button class="btn btn-logout" onclick="logout()">登出</button>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat-card"><div class="label">總玩家數</div><div class="value" id="statTotal">-</div></div>
+    <div class="stat-card"><div class="label">最高等級</div><div class="value" id="statMaxLv">-</div></div>
+    <div class="stat-card"><div class="label">拿到鑰匙</div><div class="value" id="statKey">-</div></div>
+    <div class="stat-card"><div class="label">LV.10 通關</div><div class="value" id="statClear">-</div></div>
+  </div>
+  <div class="toolbar">
+    <input type="text" id="searchInput" placeholder="🔍 搜尋帳號或暱稱..." oninput="renderTable()">
+    <span id="deleteCount"></span>
+    <button class="btn btn-danger" id="delBtn" style="display:none" onclick="deleteSelected()">🗑️ 刪除勾選</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th><input type="checkbox" class="select-cb" id="selectAll" onchange="toggleAll(this)"></th>
+        <th>帳號</th><th>暱稱</th><th>等級</th><th>金幣</th><th>ATK</th>
+        <th>通關區域</th><th>鑰匙</th><th>操作</th>
+      </tr></thead>
+      <tbody id="tableBody"><tr><td colspan="9" class="loading">請先登入</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getFirestore, collection, getDocs, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+// 從 URL hash 讀設定
+let config = null;
+try {
+  const hash = location.hash.slice(1);
+  if (!hash) throw new Error('no hash');
+  config = JSON.parse(decodeURIComponent(escape(atob(hash))));
+} catch(e) {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('noConfig').style.display = 'flex';
+}
+
+let db = null, allPlayers = [];
+
+if (config) {
+  const app = initializeApp(config.firebase);
+  db = getFirestore(app);
+  document.getElementById('classNameDisplay').textContent = config.className || '';
+  document.getElementById('headerClass').textContent = config.className || '';
+}
+
+window.login = () => {
+  const pw = document.getElementById('pwInput').value;
+  if (pw === config.adminPw) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainScreen').style.display = 'block';
+    loadData();
+  } else {
+    document.getElementById('loginError').textContent = '密碼錯誤';
+    document.getElementById('pwInput').value = '';
+  }
+};
+
+window.logout = () => {
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('mainScreen').style.display = 'none';
+  document.getElementById('pwInput').value = '';
+};
+
+window.loadData = async () => {
+  document.getElementById('tableBody').innerHTML = '<tr><td colspan="9" class="loading">載入中...</td></tr>';
+  try {
+    const snap = await getDocs(collection(db, 'saves'));
+    allPlayers = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    updateStats(); renderTable();
+    document.getElementById('lastRefresh').textContent = '更新：' + new Date().toLocaleTimeString('zh-TW');
+  } catch(e) {
+    document.getElementById('tableBody').innerHTML = `<tr><td colspan="9" class="empty">讀取失敗：${e.message}</td></tr>`;
+  }
+};
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = allPlayers.length;
+  document.getElementById('statMaxLv').textContent = 'LV.' + allPlayers.reduce((m,p)=>Math.max(m,p.level||1),1);
+  document.getElementById('statKey').textContent = allPlayers.filter(p=>(p.inventory||[]).some(i=>i.id==='key_strange')).length + ' 人';
+  document.getElementById('statClear').textContent = allPlayers.filter(p=>(p.level||1)>=10).length + ' 人';
+}
+
+const ZONES = [{id:'east_forest',l:'國'},{id:'west_desert',l:'數'},{id:'south_harbor',l:'自'},{id:'north_tundra',l:'英'},{id:'outer_ruins',l:'社'}];
+
+window.renderTable = () => {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const list = allPlayers.filter(p=>(p.accountId||'').toLowerCase().includes(q)||(p.name||'').toLowerCase().includes(q));
+  if (!list.length) { document.getElementById('tableBody').innerHTML='<tr><td colspan="9" class="empty">沒有資料</td></tr>'; return; }
+  document.getElementById('tableBody').innerHTML = list.map(p => {
+    const zc = p.zoneClears||{};
+    const hasKey = (p.inventory||[]).some(i=>i.id==='key_strange');
+    const atk = (p.baseAtk||8) + ((p.level||1)-1)*2;
+    const dots = ZONES.map(z=>`<span class="zone-dot ${(zc[z.id]||0)>0?'dot-on':'dot-off'}" title="${z.l}"></span>${z.l}`).join(' ');
+    return `<tr>
+      <td><input type="checkbox" class="select-cb row-cb" data-id="${p._id}"></td>
+      <td style="font-family:monospace;color:#94a3b8;font-size:0.78rem">${p.accountId||'-'}</td>
+      <td style="font-weight:bold">${p.name||'-'}</td>
+      <td><span class="badge badge-lv">LV.${p.level||1}</span></td>
+      <td><span class="badge badge-gold">💰${p.gold||0}</span></td>
+      <td>⚔️${atk}</td>
+      <td style="font-size:0.78rem">${dots}</td>
+      <td>${hasKey?'🗝️':'—'}</td>
+      <td><button class="del-btn" onclick="deleteSingle('${p._id}','${p.name||p.accountId}')">刪除</button></td>
+    </tr>`;
+  }).join('');
+  document.querySelectorAll('.row-cb').forEach(cb=>cb.addEventListener('change',updateDelBtn));
+};
+
+function updateDelBtn() {
+  const n = document.querySelectorAll('.row-cb:checked').length;
+  document.getElementById('delBtn').style.display = n>0?'inline-block':'none';
+  document.getElementById('deleteCount').textContent = n>0?`已選 ${n} 筆`:'';
+}
+window.toggleAll = cb => { document.querySelectorAll('.row-cb').forEach(r=>r.checked=cb.checked); updateDelBtn(); };
+
+window.deleteSingle = async (id, name) => {
+  if (!confirm(`確定要刪除「${name}」的存檔嗎？`)) return;
+  await deleteDoc(doc(db,'saves',id));
+  allPlayers = allPlayers.filter(p=>p._id!==id);
+  updateStats(); renderTable();
+};
+
+window.deleteSelected = async () => {
+  const ids = [...document.querySelectorAll('.row-cb:checked')].map(cb=>cb.dataset.id);
+  if (!ids.length||!confirm(`確定刪除 ${ids.length} 筆存檔？`)) return;
+  for (const id of ids) await deleteDoc(doc(db,'saves',id));
+  allPlayers = allPlayers.filter(p=>!ids.includes(p._id));
+  updateStats(); renderTable();
+  document.getElementById('delBtn').style.display='none';
+  document.getElementById('deleteCount').textContent='';
+  document.getElementById('selectAll').checked=false;
+};
+</script>
+</body>
+</html>

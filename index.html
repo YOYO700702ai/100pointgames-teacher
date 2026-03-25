@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>亞德雷大陸｜教師版設定</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg,#1e1b4b,#0f172a); min-height: 100vh; color: #e2e8f0; display: flex; align-items: center; justify-content: center; padding: 24px; }
+
+.card { background: #1e293b; border-radius: 20px; border: 1px solid #334155; width: 100%; max-width: 640px; overflow: hidden; }
+.card-header { background: linear-gradient(135deg,#6366f1,#8b5cf6); padding: 28px 32px; text-align: center; }
+.card-header h1 { font-size: 1.6rem; font-weight: 900; margin-bottom: 6px; }
+.card-header p { font-size: 0.9rem; opacity: 0.85; }
+.card-body { padding: 32px; display: flex; flex-direction: column; gap: 28px; }
+
+.section-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #6366f1; margin-bottom: 12px; }
+.fields { display: flex; flex-direction: column; gap: 12px; }
+.field label { display: block; font-size: 0.82rem; color: #94a3b8; margin-bottom: 5px; }
+.field input, .field textarea {
+  width: 100%; padding: 10px 14px; background: #0f172a; border: 1.5px solid #334155;
+  border-radius: 10px; color: #e2e8f0; font-size: 0.9rem; outline: none; transition: border-color 0.15s;
+}
+.field input:focus, .field textarea:focus { border-color: #6366f1; }
+.field textarea { resize: vertical; min-height: 80px; font-family: monospace; font-size: 0.8rem; }
+
+.hint { font-size: 0.78rem; color: #64748b; margin-top: 5px; line-height: 1.5; }
+.hint a { color: #818cf8; text-decoration: none; }
+.hint a:hover { text-decoration: underline; }
+
+.firebase-steps { background: #0f172a; border-radius: 10px; padding: 14px 16px; font-size: 0.8rem; color: #94a3b8; line-height: 1.9; border: 1px solid #1e293b; }
+.firebase-steps b { color: #e2e8f0; }
+
+.btn-generate {
+  width: 100%; padding: 14px; background: linear-gradient(135deg,#6366f1,#8b5cf6);
+  color: white; font-size: 1rem; font-weight: 800; border: none; border-radius: 12px;
+  cursor: pointer; letter-spacing: 0.05em; transition: opacity 0.15s; margin-top: 4px;
+}
+.btn-generate:hover { opacity: 0.85; }
+
+/* 結果區 */
+#result { display: none; }
+.result-box { background: #0f172a; border-radius: 12px; padding: 20px; border: 1px solid #334155; }
+.result-box .label { font-size: 0.75rem; color: #64748b; margin-bottom: 6px; }
+.url-row { display: flex; gap: 8px; align-items: center; }
+.url-text { flex: 1; padding: 8px 12px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; font-family: monospace; font-size: 0.78rem; color: #a5b4fc; word-break: break-all; }
+.copy-btn { padding: 7px 14px; background: #334155; color: #e2e8f0; border: none; border-radius: 8px; cursor: pointer; font-size: 0.8rem; white-space: nowrap; }
+.copy-btn:hover { background: #475569; }
+.copy-btn.copied { background: #166534; color: #86efac; }
+.divider { border: none; border-top: 1px solid #1e293b; }
+
+.error { background: #450a0a; border: 1px solid #991b1b; color: #fca5a5; padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; display: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="card-header">
+    <h1>🏰 亞德雷大陸・教師版</h1>
+    <p>填寫以下設定，即可獲得你班級專屬的遊戲網址與後台網址</p>
+  </div>
+  <div class="card-body">
+
+    <!-- 班級資訊 -->
+    <div>
+      <div class="section-title">① 班級資訊</div>
+      <div class="fields">
+        <div class="field">
+          <label>班級名稱（會顯示在遊戲標題）</label>
+          <input type="text" id="className" placeholder="例：五年三班">
+        </div>
+        <div class="field">
+          <label>管理員密碼（後台登入用）</label>
+          <input type="password" id="adminPw" placeholder="自訂密碼，請記住">
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 題庫 CSV -->
+    <div>
+      <div class="section-title">② Google 試算表題庫網址</div>
+      <p class="hint" style="margin-bottom:12px">
+        先複製<a href="https://docs.google.com/spreadsheets/d/1_TEMPLATE_LINK" target="_blank">這份範本試算表</a>，換成你的題目，再點「檔案 → 共用 → 發布到網路 → CSV」複製網址貼到下方。
+      </p>
+      <div class="fields">
+        <div class="field">
+          <label>國語科 CSV 網址</label>
+          <input type="url" id="csvChinese" placeholder="https://docs.google.com/spreadsheets/d/e/...">
+        </div>
+        <div class="field">
+          <label>數學 / 自然科 CSV 網址</label>
+          <input type="url" id="csvScience" placeholder="https://docs.google.com/spreadsheets/d/e/...">
+        </div>
+        <div class="field">
+          <label>社會科 CSV 網址</label>
+          <input type="url" id="csvSocial" placeholder="https://docs.google.com/spreadsheets/d/e/...">
+        </div>
+        <div class="field">
+          <label>英語科 CSV 網址</label>
+          <input type="url" id="csvEnglish" placeholder="https://docs.google.com/spreadsheets/d/e/...">
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Firebase -->
+    <div>
+      <div class="section-title">③ Firebase 設定（學生存檔用）</div>
+      <div class="firebase-steps">
+        <b>取得 Firebase 設定的步驟：</b><br>
+        1. 前往 <b>console.firebase.google.com</b> → 建立專案<br>
+        2. 左側選 <b>Firestore Database</b> → 建立資料庫（正式模式）<br>
+        3. 點左上齒輪 ⚙️ → <b>專案設定</b> → 捲到最下方<br>
+        4. 點 <b>&lt;/&gt; 網頁應用程式</b> → 取名後下一步<br>
+        5. 複製出現的 <b>firebaseConfig</b> 整段貼到下方
+      </div>
+      <div class="field" style="margin-top:12px">
+        <label>貼上 firebaseConfig 整段程式碼</label>
+        <textarea id="firebaseConfig" placeholder='const firebaseConfig = {
+  apiKey: "AIza...",
+  authDomain: "xxx.firebaseapp.com",
+  projectId: "xxx",
+  storageBucket: "xxx.appspot.com",
+  messagingSenderId: "...",
+  appId: "..."
+};'></textarea>
+      </div>
+    </div>
+
+    <div class="error" id="errMsg"></div>
+
+    <button class="btn-generate" onclick="generate()">✨ 產生專屬網址</button>
+
+    <!-- 結果 -->
+    <div id="result">
+      <hr class="divider" style="margin-bottom:20px">
+      <div style="font-size:0.9rem;font-weight:bold;margin-bottom:16px;color:#86efac">✅ 設定完成！把以下兩個網址存起來：</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="result-box">
+          <div class="label">🎮 遊戲網址（分享給學生）</div>
+          <div class="url-row">
+            <div class="url-text" id="gameUrl"></div>
+            <button class="copy-btn" onclick="copyUrl('gameUrl',this)">複製</button>
+          </div>
+        </div>
+        <div class="result-box">
+          <div class="label">🔧 後台管理網址（只給自己看）</div>
+          <div class="url-row">
+            <div class="url-text" id="adminUrl"></div>
+            <button class="copy-btn" onclick="copyUrl('adminUrl',this)">複製</button>
+          </div>
+        </div>
+        <p class="hint">⚠️ 請把這兩個網址存到記事本，重新設定後網址會改變。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function showError(msg) {
+  const el = document.getElementById('errMsg');
+  el.textContent = msg; el.style.display = 'block';
+}
+function clearError() {
+  document.getElementById('errMsg').style.display = 'none';
+}
+
+function parseFirebaseConfig(raw) {
+  try {
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) return null;
+    const json = match[0]
+      .replace(/(\w+):/g, '"$1":')
+      .replace(/'/g, '"')
+      .replace(/,\s*\}/g, '}');
+    return JSON.parse(json);
+  } catch(e) { return null; }
+}
+
+function generate() {
+  clearError();
+  const className   = document.getElementById('className').value.trim();
+  const adminPw     = document.getElementById('adminPw').value.trim();
+  const csvChinese  = document.getElementById('csvChinese').value.trim();
+  const csvScience  = document.getElementById('csvScience').value.trim();
+  const csvSocial   = document.getElementById('csvSocial').value.trim();
+  const csvEnglish  = document.getElementById('csvEnglish').value.trim();
+  const fbRaw       = document.getElementById('firebaseConfig').value.trim();
+
+  if (!className) return showError('請填寫班級名稱');
+  if (!adminPw)   return showError('請設定管理員密碼');
+  if (!csvChinese || !csvScience || !csvSocial || !csvEnglish)
+    return showError('請填寫四個科目的 CSV 網址');
+  if (!fbRaw) return showError('請貼上 Firebase 設定');
+
+  const fb = parseFirebaseConfig(fbRaw);
+  if (!fb || !fb.apiKey || !fb.projectId)
+    return showError('Firebase 設定格式不正確，請確認有包含 apiKey 和 projectId');
+
+  const config = { className, adminPw, csvChinese, csvScience, csvSocial, csvEnglish, firebase: fb };
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(config))));
+  const base = window.location.origin + '/100pointgames-teacher';
+  document.getElementById('gameUrl').textContent  = `${base}/game.html#${encoded}`;
+  document.getElementById('adminUrl').textContent = `${base}/admin.html#${encoded}`;
+  document.getElementById('result').style.display = 'block';
+  document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+}
+
+function copyUrl(id, btn) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '已複製 ✓'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '複製'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>
