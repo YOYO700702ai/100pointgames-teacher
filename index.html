@@ -6,50 +6,51 @@
 <title>亞德雷大陸｜教師版設定</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg,#1e1b4b,#0f172a); min-height: 100vh; color: #e2e8f0; display: flex; align-items: center; justify-content: center; padding: 24px; }
+body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg,#ffe4f0,#ffd6e8,#ffb3d1); min-height: 100vh; color: #4a1530; display: flex; align-items: center; justify-content: center; padding: 24px; }
 
-.card { background: #1e293b; border-radius: 20px; border: 1px solid #334155; width: 100%; max-width: 640px; overflow: hidden; }
-.card-header { background: linear-gradient(135deg,#6366f1,#8b5cf6); padding: 28px 32px; text-align: center; }
-.card-header h1 { font-size: 1.6rem; font-weight: 900; margin-bottom: 6px; }
-.card-header p { font-size: 0.9rem; opacity: 0.85; }
+.card { background: #fff0f6; border-radius: 20px; border: 2px solid #ffadd6; width: 100%; max-width: 640px; overflow: hidden; box-shadow: 0 8px 32px rgba(255,100,180,0.18); }
+.card-header { background: linear-gradient(135deg,#ff6eb4,#ff4da6,#e91e8c); padding: 28px 32px; text-align: center; }
+.card-header h1 { font-size: 1.6rem; font-weight: 900; margin-bottom: 6px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+.card-header p { font-size: 0.9rem; opacity: 0.9; color: #ffe4f3; }
 .card-body { padding: 32px; display: flex; flex-direction: column; gap: 28px; }
 
-.section-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #6366f1; margin-bottom: 12px; }
+.section-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #e91e8c; margin-bottom: 12px; }
 .fields { display: flex; flex-direction: column; gap: 12px; }
-.field label { display: block; font-size: 0.82rem; color: #94a3b8; margin-bottom: 5px; }
+.field label { display: block; font-size: 0.82rem; color: #9d174d; margin-bottom: 5px; font-weight: 600; }
 .field input, .field textarea {
-  width: 100%; padding: 10px 14px; background: #0f172a; border: 1.5px solid #334155;
-  border-radius: 10px; color: #e2e8f0; font-size: 0.9rem; outline: none; transition: border-color 0.15s;
+  width: 100%; padding: 10px 14px; background: #fff; border: 1.5px solid #ffadd6;
+  border-radius: 10px; color: #4a1530; font-size: 0.9rem; outline: none; transition: border-color 0.15s;
 }
-.field input:focus, .field textarea:focus { border-color: #6366f1; }
+.field input:focus, .field textarea:focus { border-color: #e91e8c; }
 .field textarea { resize: vertical; min-height: 80px; font-family: monospace; font-size: 0.8rem; }
 
-.hint { font-size: 0.78rem; color: #64748b; margin-top: 5px; line-height: 1.5; }
-.hint a { color: #818cf8; text-decoration: none; }
+.hint { font-size: 0.78rem; color: #be185d; margin-top: 5px; line-height: 1.5; }
+.hint a { color: #e91e8c; text-decoration: none; }
 .hint a:hover { text-decoration: underline; }
 
-.firebase-steps { background: #0f172a; border-radius: 10px; padding: 14px 16px; font-size: 0.8rem; color: #94a3b8; line-height: 1.9; border: 1px solid #1e293b; }
-.firebase-steps b { color: #e2e8f0; }
+.firebase-steps { background: #ffe4f0; border-radius: 10px; padding: 14px 16px; font-size: 0.8rem; color: #9d174d; line-height: 1.9; border: 1px solid #ffadd6; }
+.firebase-steps b { color: #4a1530; }
 
 .btn-generate {
-  width: 100%; padding: 14px; background: linear-gradient(135deg,#6366f1,#8b5cf6);
+  width: 100%; padding: 14px; background: linear-gradient(135deg,#ff6eb4,#e91e8c);
   color: white; font-size: 1rem; font-weight: 800; border: none; border-radius: 12px;
   cursor: pointer; letter-spacing: 0.05em; transition: opacity 0.15s; margin-top: 4px;
+  box-shadow: 0 4px 16px rgba(233,30,140,0.3);
 }
 .btn-generate:hover { opacity: 0.85; }
 
 /* 結果區 */
 #result { display: none; }
-.result-box { background: #0f172a; border-radius: 12px; padding: 20px; border: 1px solid #334155; }
-.result-box .label { font-size: 0.75rem; color: #64748b; margin-bottom: 6px; }
+.result-box { background: #ffe4f0; border-radius: 12px; padding: 20px; border: 1px solid #ffadd6; }
+.result-box .label { font-size: 0.75rem; color: #9d174d; margin-bottom: 6px; font-weight: 600; }
 .url-row { display: flex; gap: 8px; align-items: center; }
-.url-text { flex: 1; padding: 8px 12px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; font-family: monospace; font-size: 0.78rem; color: #a5b4fc; word-break: break-all; }
-.copy-btn { padding: 7px 14px; background: #334155; color: #e2e8f0; border: none; border-radius: 8px; cursor: pointer; font-size: 0.8rem; white-space: nowrap; }
-.copy-btn:hover { background: #475569; }
-.copy-btn.copied { background: #166534; color: #86efac; }
-.divider { border: none; border-top: 1px solid #1e293b; }
+.url-text { flex: 1; padding: 8px 12px; background: #fff; border: 1px solid #ffadd6; border-radius: 8px; font-family: monospace; font-size: 0.78rem; color: #be185d; word-break: break-all; }
+.copy-btn { padding: 7px 14px; background: #ff6eb4; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.8rem; white-space: nowrap; font-weight: bold; }
+.copy-btn:hover { background: #e91e8c; }
+.copy-btn.copied { background: #15803d; color: #bbf7d0; }
+.divider { border: none; border-top: 1px solid #ffadd6; }
 
-.error { background: #450a0a; border: 1px solid #991b1b; color: #fca5a5; padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; display: none; }
+.error { background: #fff0f0; border: 1px solid #fca5a5; color: #9f1239; padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; display: none; }
 </style>
 </head>
 <body>
@@ -85,19 +86,19 @@ body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg,#
       </p>
       <div class="fields">
         <div class="field">
-          <label>國語科 CSV 網址</label>
+          <label>🎋 千卷墨林 CSV 網址</label>
           <input type="url" id="csvChinese" placeholder="https://docs.google.com/spreadsheets/d/e/...">
         </div>
         <div class="field">
-          <label>數學 / 自然科 CSV 網址</label>
+          <label>🔥 元素港灣 CSV 網址</label>
           <input type="url" id="csvScience" placeholder="https://docs.google.com/spreadsheets/d/e/...">
         </div>
         <div class="field">
-          <label>社會科 CSV 網址</label>
+          <label>🏺 編年廢墟 CSV 網址</label>
           <input type="url" id="csvSocial" placeholder="https://docs.google.com/spreadsheets/d/e/...">
         </div>
         <div class="field">
-          <label>英語科 CSV 網址</label>
+          <label>❄️ 單字凍原 CSV 網址</label>
           <input type="url" id="csvEnglish" placeholder="https://docs.google.com/spreadsheets/d/e/...">
         </div>
       </div>
