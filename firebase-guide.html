@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firebase 資料庫設定教學｜亞德雷大陸教師版</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap');
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Nunito', 'Segoe UI', sans-serif;
+  background: linear-gradient(160deg, #c8f0e8 0%, #b8e4f5 40%, #d4f0e0 70%, #a8ddf0 100%);
+  min-height: 100vh; color: #2d5a4a;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 32px 20px;
+}
+.card {
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(12px);
+  border-radius: 28px;
+  border: 2.5px solid rgba(120,210,180,0.5);
+  width: 100%; max-width: 660px;
+  box-shadow: 0 12px 48px rgba(60,160,120,0.15);
+  overflow: hidden;
+}
+.card-header {
+  background: linear-gradient(135deg, #5bbfa0, #3da8d0, #4ec9a0);
+  padding: 28px 36px 24px;
+  text-align: center;
+}
+.card-header h1 { font-size: 1.6rem; font-weight: 900; color: #fff; margin-bottom: 6px; }
+.card-header p { font-size: 0.88rem; color: rgba(255,255,255,0.9); }
+.card-body { padding: 28px 32px; display: flex; flex-direction: column; gap: 20px; }
+
+.step {
+  background: linear-gradient(135deg, rgba(180,235,220,0.35), rgba(180,220,240,0.35));
+  border: 1.5px solid rgba(100,195,170,0.4);
+  border-radius: 18px; padding: 18px 20px;
+}
+.step-title {
+  font-size: 1rem; font-weight: 900; color: #2d8a6a;
+  margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+}
+.step-num {
+  background: linear-gradient(135deg,#5bbfa0,#3da8d0);
+  color: white; border-radius: 50%; width: 26px; height: 26px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; font-weight: 900; flex-shrink: 0;
+}
+.step p, .step li { font-size: 0.9rem; line-height: 1.8; color: #2d5a4a; }
+.step ul { padding-left: 18px; }
+.step li { margin-bottom: 4px; }
+.note {
+  background: rgba(255,230,100,0.25);
+  border: 1.5px solid rgba(200,170,0,0.3);
+  border-radius: 12px; padding: 12px 16px;
+  font-size: 0.85rem; line-height: 1.7; color: #6b5a00;
+}
+code {
+  background: rgba(60,160,120,0.12);
+  border-radius: 6px; padding: 2px 7px;
+  font-family: monospace; font-size: 0.88rem; color: #1a6b50;
+}
+.code-block {
+  background: #1e2d28;
+  border-radius: 10px; padding: 14px 16px;
+  font-family: monospace; font-size: 0.82rem;
+  color: #7ee8c0; line-height: 1.7;
+  white-space: pre; overflow-x: auto;
+}
+.code-block .hl { color: #f9a825; }
+.pdf-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, #5bbfa0, #3da8d0);
+  color: white; text-decoration: none;
+  border-radius: 12px; padding: 10px 20px;
+  font-weight: 700; font-size: 0.9rem;
+  transition: opacity 0.2s;
+}
+.pdf-link:hover { opacity: 0.85; }
+.back-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: #2d8a6a; text-decoration: none; font-size: 0.85rem; font-weight: 700;
+}
+.back-link:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="card-header">
+    <div style="font-size:1.4rem;margin-bottom:8px">🔥 🍄 ☁️</div>
+    <h1>Firebase 後台資料庫設定教學</h1>
+    <p>亞德雷大陸教師版 | 存檔資料庫設定說明</p>
+  </div>
+
+  <div class="card-body">
+
+    <a href="index.html" class="back-link">← 回到設定頁</a>
+
+    <div class="note">
+      💡 Firebase 是 Google 提供的免費雲端資料庫，用來儲存學生的遊戲進度與存檔資料。必須設定才能讓學生存檔。
+    </div>
+
+    <div class="step">
+      <div class="step-title"><span class="step-num">1</span> 建立 Firebase 專案</div>
+      <ul>
+        <li>前往 <b>https://firebase.google.com</b></li>
+        <li>點 <b>「Get started in console」</b>，用 Google 帳號登入</li>
+        <li>點 <b>「開始之前，請先設置 Firebase 專案」</b></li>
+        <li>輸入專案名稱（例：我的班級遊戲）</li>
+        <li>點 <b>「繼續」</b>，等幾秒後再點 <b>「繼續」</b></li>
+        <li>看到「您的 Firebase 專案已準備就緒」→ 點 <b>「繼續」</b></li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <div class="step-title"><span class="step-num">2</span> 建立 Firestore 資料庫</div>
+      <ul>
+        <li>進入專案後，左側選單點 <b>「建構」→「Firestore Database」</b></li>
+        <li>點 <b>「建立資料庫」</b></li>
+        <li>版本選 <b>Standard 版</b> → 點 <b>「下一步」</b></li>
+        <li>位置選 <b>asia-east1</b>（距離台灣最近）→ 點 <b>「下一步」</b></li>
+        <li>安全性規則選 <b>「以正式版模式啟動」</b> → 點 <b>「建立」</b></li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <div class="step-title"><span class="step-num">3</span> 設定讀寫權限</div>
+      <ul>
+        <li>進入 Firestore 後，點上方 <b>「規則」</b> 分頁</li>
+        <li>找到 <code>if false</code>，把 <code>false</code> 改成 <code>true</code></li>
+        <li>點 <b>「發布」</b></li>
+      </ul>
+      <div style="margin-top:12px">
+        <div style="font-size:0.82rem;color:#2d8a6a;margin-bottom:6px">修改後的規則內容應如下：</div>
+        <div class="code-block">rules_version = <span class="hl">'2'</span>;
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if <span class="hl">true</span>;
+    }
+  }
+}</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-title"><span class="step-num">4</span> 取得設定碼</div>
+      <ul>
+        <li>點左上角 <b>齒輪圖示 ⚙ → 「設定」</b></li>
+        <li>點 <b>「一般」</b></li>
+        <li>下滑到 <b>「你的應用程式」</b> 區塊</li>
+        <li>點 <b><code>&lt;/&gt;</code></b> 網頁圖示</li>
+        <li>應用程式暱稱隨便填（例：game）→ 點 <b>「註冊應用程式」</b></li>
+        <li>把出現的 <b>整段程式碼</b> 複製，貼到設定頁的欄位即可</li>
+      </ul>
+    </div>
+
+    <div class="note">
+      ⚠️ <b>注意事項：</b><br>
+      • Firebase 免費方案每天有讀取上限（約 50,000 次），一般班級使用完全足夠<br>
+      • 設定碼包含你的專案資訊，請勿分享給不相關的人<br>
+      • 每位老師需要建立自己的 Firebase 專案，不能共用同一個
+    </div>
+
+    <div style="text-align:center;margin-top:4px">
+      <a href="Firebase_Backend_資料庫設定教學.pdf" target="_blank" class="pdf-link">
+        📄 下載 PDF 圖文教學
+      </a>
+    </div>
+
+    <a href="index.html" class="back-link">← 回到設定頁</a>
+
+  </div>
+</div>
+</body>
+</html>
