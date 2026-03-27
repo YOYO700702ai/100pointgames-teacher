@@ -89,9 +89,9 @@ tbody td { padding:9px 13px; vertical-align:middle; }
       <thead><tr>
         <th><input type="checkbox" class="select-cb" id="selectAll" onchange="toggleAll(this)"></th>
         <th>帳號</th><th>暱稱</th><th>等級</th><th>金幣</th><th>ATK</th>
-        <th>通關區域</th><th>鑰匙</th><th>成就</th><th>通關</th><th>操作</th>
+        <th>通關區域</th><th>鑰匙</th><th>成就</th><th>通關</th><th>最後儲存</th><th>操作</th>
       </tr></thead>
-      <tbody id="tableBody"><tr><td colspan="11" class="loading">請先登入</td></tr></tbody>
+      <tbody id="tableBody"><tr><td colspan="12" class="loading">請先登入</td></tr></tbody>
     </table>
   </div>
 </div>
@@ -139,14 +139,14 @@ window.logout = () => {
 };
 
 window.loadData = async () => {
-  document.getElementById('tableBody').innerHTML = '<tr><td colspan="9" class="loading">載入中...</td></tr>';
+  document.getElementById('tableBody').innerHTML = '<tr><td colspan="12" class="loading">載入中...</td></tr>';
   try {
     const snap = await getDocs(collection(db, 'saves'));
     allPlayers = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
     updateStats(); renderTable();
     document.getElementById('lastRefresh').textContent = '更新：' + new Date().toLocaleTimeString('zh-TW');
   } catch(e) {
-    document.getElementById('tableBody').innerHTML = `<tr><td colspan="9" class="empty">讀取失敗：${e.message}</td></tr>`;
+    document.getElementById('tableBody').innerHTML = `<tr><td colspan="12" class="empty">讀取失敗：${e.message}</td></tr>`;
   }
 };
 
@@ -162,7 +162,7 @@ const ZONES = [{id:'east_forest',l:'國'},{id:'west_desert',l:'數'},{id:'south_
 window.renderTable = () => {
   const q = document.getElementById('searchInput').value.toLowerCase();
   const list = allPlayers.filter(p=>(p.accountId||'').toLowerCase().includes(q)||(p.name||'').toLowerCase().includes(q));
-  if (!list.length) { document.getElementById('tableBody').innerHTML='<tr><td colspan="11" class="empty">沒有資料</td></tr>'; return; }
+  if (!list.length) { document.getElementById('tableBody').innerHTML='<tr><td colspan="12" class="empty">沒有資料</td></tr>'; return; }
   document.getElementById('tableBody').innerHTML = list.map(p => {
     const zc = p.zoneClears||{};
     const hasKey = (p.inventory||[]).some(i=>i.id==='key_strange');
@@ -187,6 +187,7 @@ window.renderTable = () => {
       <td>${hasKey?'🗝️':'—'}</td>
       <td>${achCount}/${TOTAL_ACH}</td>
       <td>${p.gameCleared?'✅':'—'}</td>
+      <td style="font-size:0.75rem;color:#64748b;white-space:nowrap">${p.savedAt ? new Date(p.savedAt).toLocaleString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '—'}</td>
       <td><button class="del-btn" onclick="deleteSingle('${p._id}','${p.name||p.accountId}')">刪除</button></td>
     </tr>`;
   }).join('');
