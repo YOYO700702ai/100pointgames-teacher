@@ -402,13 +402,30 @@ function generate() {
   if (customScience) config.csvScience = customScience;
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(config))));
   const base = window.location.origin + '/100pointgames-teacher';
-  
-  document.getElementById('gameUrl').textContent  = `${base}/game.html#${encoded}`;
-  document.getElementById('adminUrl').textContent = `${base}/admin.html#${encoded}`;
-  
+  const fullGameUrl  = `${base}/game.html#${encoded}`;
+  const fullAdminUrl = `${base}/admin.html#${encoded}`;
+
+  // 先顯示完整網址，再嘗試縮短
+  document.getElementById('gameUrl').textContent  = fullGameUrl;
+  document.getElementById('adminUrl').textContent = fullAdminUrl;
   const resultPanel = document.getElementById('result-panel');
   resultPanel.style.display = 'block';
   resultPanel.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+  // 用 TinyURL 縮短（不需要 API key）
+  document.getElementById('gameUrl').textContent  = '⏳ 縮網址中...';
+  document.getElementById('adminUrl').textContent = '⏳ 縮網址中...';
+  Promise.all([
+    fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(fullGameUrl)}`).then(r => r.text()),
+    fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(fullAdminUrl)}`).then(r => r.text()),
+  ]).then(([shortGame, shortAdmin]) => {
+    document.getElementById('gameUrl').textContent  = shortGame.startsWith('http') ? shortGame : fullGameUrl;
+    document.getElementById('adminUrl').textContent = shortAdmin.startsWith('http') ? shortAdmin : fullAdminUrl;
+  }).catch(() => {
+    // 縮網址失敗就顯示原始網址
+    document.getElementById('gameUrl').textContent  = fullGameUrl;
+    document.getElementById('adminUrl').textContent = fullAdminUrl;
+  });
 }
 
 // 針對 iframe 環境優化的複製功能
