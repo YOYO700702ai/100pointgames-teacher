@@ -390,14 +390,12 @@ function generate() {
   if (!fb || !fb.apiKey || !fb.projectId)
     return showError('Firebase 設定格式不正確，請確認有包含 apiKey 和 projectId');
 
-  // 緊湊格式：縮短 key 名稱，authDomain/storageBucket 可從 projectId 推導，不存入
+  // 最小格式：只存 apiKey + projectId（Firestore 不需要 appId/messagingSenderId）
   const compact = {
     n:  className,
     pw: adminPw,
     k:  fb.apiKey,
     p:  fb.projectId,
-    m:  fb.messagingSenderId,
-    i:  fb.appId,
   };
   const customChinese = document.getElementById('csvChinese').value.trim();
   const customEnglish = document.getElementById('csvEnglish').value.trim();
