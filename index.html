@@ -396,7 +396,16 @@ function generate() {
   if (!fb || !fb.apiKey || !fb.projectId)
     return showError('Firebase 設定格式不正確，請確認有包含 apiKey 和 projectId');
 
-  const config = { className, adminPw, csvChinese, csvScience, csvSocial, csvEnglish, firebase: fb };
+  // 只有老師自訂的 CSV 才存入 hash，預設值不塞（遊戲端已有預設）
+  const config = { className, adminPw, firebase: fb };
+  const customChinese = document.getElementById('csvChinese').value.trim();
+  const customEnglish = document.getElementById('csvEnglish').value.trim();
+  const customSocial  = document.getElementById('csvSocial').value.trim();
+  const customScience = document.getElementById('csvScience').value.trim();
+  if (customChinese) config.csvChinese = customChinese;
+  if (customEnglish) config.csvEnglish = customEnglish;
+  if (customSocial)  config.csvSocial  = customSocial;
+  if (customScience) config.csvScience = customScience;
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(config))));
   const base = window.location.origin + '/100pointgames-teacher';
   
