@@ -354,10 +354,11 @@ function clearError() {
 
 function parseFirebaseConfig(raw) {
   try {
-    const match = raw.match(/\{[\s\S]*?\}/);
-    if (!match) return null;
-    // 直接用 JS 執行物件字面值，避免 regex 轉換 JSON 時誤傷 appId 裡的冒號
-    return new Function('return ' + match[0])();
+    // 優先找 firebaseConfig = {...}，避免抓到 import { ... } 的大括號
+    let m = raw.match(/firebaseConfig\s*=\s*(\{[\s\S]*?\})/);
+    if (!m) m = raw.match(/(\{[\s\S]*?apiKey[\s\S]*?\})/);
+    if (!m) return null;
+    return new Function('return ' + (m[1] || m[0]))();
   } catch(e) { return null; }
 }
 
