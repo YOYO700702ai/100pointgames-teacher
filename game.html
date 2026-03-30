@@ -3,10 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>亞德雷大陸（教師版）</title>
+    <!-- 提前建立連線，減少跳轉後的等待時間 -->
+    <link rel="preconnect" href="https://yoyo700702ai.github.io">
+    <link rel="prefetch" href="https://yoyo700702ai.github.io/100pointgames/">
+    <style>
+      body { margin:0; background:#1e1b4b; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+      .msg { color:#a5b4fc; font-family:sans-serif; font-size:1.1rem; }
+    </style>
 </head>
 <body>
+<div class="msg">⚔️ 載入中...</div>
 <script>
-    // 將老師的設定（URL hash）帶著跳轉到主版遊戲
     var hash = location.hash;
     location.replace('https://yoyo700702ai.github.io/100pointgames/' + hash);
 </script>
