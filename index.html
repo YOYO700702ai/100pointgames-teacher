@@ -429,8 +429,7 @@ async function generate() {
 
 window.generate = generate;
 
-// 針對 iframe 環境優化的複製功能
-function copyUrl(id, btn) {
+window.copyUrl = function copyUrl(id, btn) {
   const text = document.getElementById(id).textContent;
   
   // 建立隱藏的 textarea 來執行複製
