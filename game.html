@@ -45,8 +45,31 @@
         // 從 URL hash 讀取老師設定（教師版模式）
         let _teacherConfig = null;
         try {
-            if (location.hash && location.hash.length > 1)
-                _teacherConfig = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(1)))));
+            if (location.hash && location.hash.length > 1) {
+                const raw = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(1)))));
+                // 支援緊湊格式（新）與完整格式（舊）
+                if (raw.k && raw.p) {
+                    // 緊湊格式：從 projectId 推導 authDomain / storageBucket
+                    _teacherConfig = {
+                        className:  raw.n,
+                        adminPw:    raw.pw,
+                        firebase: {
+                            apiKey:            raw.k,
+                            authDomain:        raw.p + '.firebaseapp.com',
+                            projectId:         raw.p,
+                            storageBucket:     raw.p + '.firebasestorage.app',
+                            messagingSenderId: raw.m,
+                            appId:             raw.i,
+                        },
+                        csvChinese: raw.cc || null,
+                        csvEnglish: raw.ce || null,
+                        csvSocial:  raw.cs || null,
+                        csvScience: raw.cn || null,
+                    };
+                } else {
+                    _teacherConfig = raw; // 舊格式直接用
+                }
+            }
         } catch(e) {}
         const IS_TEACHER_MODE = _teacherConfig !== null;
         const TEACHER_CONFIG_ERROR = IS_TEACHER_MODE && !(_teacherConfig?.firebase?.apiKey);
