@@ -340,6 +340,15 @@ body {
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
+// 我們自己的預設 Firestore，用來存老師設定
+const _centralApp = initializeApp({
+  apiKey: "AIzaSyBnHKkNtvQdSoCywSCZKkwPI_dRLJNXvXg",
+  authDomain: "rpggame-7ae09.firebaseapp.com",
+  projectId: "rpggame-7ae09",
+  storageBucket: "rpggame-7ae09.firebasestorage.app",
+}, 'central');
+const _centralDb = getFirestore(_centralApp);
+
 window.showError = function(msg) {
   const el = document.getElementById('errMsg');
   el.textContent = msg; el.style.display = 'block';
@@ -396,34 +405,25 @@ async function generate() {
   resultPanel.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
   try {
-    const app = initializeApp({
-      apiKey:        fb.apiKey,
-      authDomain:    fb.projectId + '.firebaseapp.com',
-      projectId:     fb.projectId,
-      storageBucket: fb.projectId + '.firebasestorage.app',
-    }, 'teacher-setup-' + Date.now());
-    const db = getFirestore(app);
-
-    // 用 projectId + className 當唯一 ID，同班同老師覆蓋舊設定
-    const configId = btoa(fb.projectId + '|' + className).replace(/[^a-zA-Z0-9]/g, '').slice(0, 16);
+    // 存到我們自己的中央 Firestore，老師不需要設定任何規則
+    const configId = btoa(fb.projectId + '|' + className).replace(/[^a-zA-Z0-9]/g, '').slice(0, 20);
     const configData = {
       className, adminPw,
-      apiKey:    fb.apiKey,
-      projectId: fb.projectId,
+      apiKey:     fb.apiKey,
+      projectId:  fb.projectId,
       csvChinese: customChinese || null,
       csvEnglish: customEnglish || null,
       csvSocial:  customSocial  || null,
       csvScience: customScience || null,
-      createdAt: new Date().toISOString(),
+      createdAt:  new Date().toISOString(),
     };
-    await setDoc(doc(db, 'teacher_configs', configId), configData);
+    await setDoc(doc(_centralDb, 'teacher_configs', configId), configData);
 
     const base = window.location.origin + '/100pointgames-teacher';
-    const shortParam = `k=${encodeURIComponent(fb.apiKey)}&p=${encodeURIComponent(fb.projectId)}&id=${configId}`;
-    document.getElementById('gameUrl').textContent  = `${base}/game.html?${shortParam}`;
-    document.getElementById('adminUrl').textContent = `${base}/admin.html?${shortParam}`;
+    document.getElementById('gameUrl').textContent  = `${base}/game.html?id=${configId}`;
+    document.getElementById('adminUrl').textContent = `${base}/admin.html?id=${configId}`;
   } catch(e) {
-    showError('儲存設定失敗：' + e.message + '\n請確認 Firebase 設定正確，且已開啟 Firestore。');
+    showError('儲存設定失敗：' + e.message);
   }
 }
 

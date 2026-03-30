@@ -100,60 +100,44 @@ tbody td { padding:9px 13px; vertical-align:middle; }
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getFirestore, collection, getDocs, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-// 從 URL 讀設定（支援 ?k=&p=&id= 新格式、?c=... 和 #... 舊格式）
+// 從 URL 讀設定（支援 ?id= 新格式、?c=... 和 #... 舊格式）
 let config = null;
-let _configId = null;
-try {
-  const params = new URLSearchParams(location.search);
-  const apiKey = params.get('k'), projectId = params.get('p'), configId = params.get('id');
-  if (apiKey && projectId && configId) {
-    // 新格式：firebase 設定在 Firestore
-    config = {
-      _needFetch: true,
-      firebase: {
-        apiKey,
-        authDomain:    projectId + '.firebaseapp.com',
-        projectId,
-        storageBucket: projectId + '.firebasestorage.app',
-      },
-    };
-    _configId = configId;
-  } else {
-    const encoded = params.get('c') || location.hash.slice(1);
-    if (!encoded) throw new Error('no config');
-    const raw = JSON.parse(decodeURIComponent(escape(atob(encoded))));
-    if (raw.k && raw.p) {
-      config = {
-        className: raw.n, adminPw: raw.pw,
-        firebase: { apiKey: raw.k, authDomain: raw.p+'.firebaseapp.com', projectId: raw.p, storageBucket: raw.p+'.firebasestorage.app' },
-      };
-    } else { config = raw; }
-  }
-} catch(e) {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('noConfig').style.display = 'flex';
-}
+let _configId = new URLSearchParams(location.search).get('id') || null;
 
 let db = null, allPlayers = [];
 
-if (config) {
-  const app = initializeApp(config.firebase);
-  db = getFirestore(app);
-  // 新格式：從 Firestore 抓 className / adminPw
-  if (config._needFetch && _configId) {
-    getDoc(doc(db, 'teacher_configs', _configId)).then(snap => {
-      if (snap.exists()) {
-        const cfg = snap.data();
-        config.className = cfg.className;
-        config.adminPw   = cfg.adminPw;
-        document.getElementById('classNameDisplay').textContent = cfg.className || '';
-        document.getElementById('headerClass').textContent = cfg.className || '';
-      }
-    }).catch(() => {});
-  } else {
-    document.getElementById('classNameDisplay').textContent = config.className || '';
-    document.getElementById('headerClass').textContent = config.className || '';
-  }
+// 用中央 Firebase 初始化，再從 teacher_configs 抓老師設定
+const _centralApp = initializeApp({
+  apiKey: "AIzaSyBnHKkNtvQdSoCywSCZKkwPI_dRLJNXvXg",
+  authDomain: "rpggame-7ae09.firebaseapp.com",
+  projectId: "rpggame-7ae09",
+  storageBucket: "rpggame-7ae09.firebasestorage.app",
+});
+const _centralDb = getFirestore(_centralApp);
+
+if (_configId) {
+  getDoc(doc(_centralDb, 'teacher_configs', _configId)).then(snap => {
+    if (!snap.exists()) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('noConfig').style.display = 'flex';
+      return;
+    }
+    const cfg = snap.data();
+    config = { className: cfg.className, adminPw: cfg.adminPw, firebase: {
+      apiKey: cfg.apiKey, authDomain: cfg.projectId+'.firebaseapp.com',
+      projectId: cfg.projectId, storageBucket: cfg.projectId+'.firebasestorage.app',
+    }};
+    const teacherApp = initializeApp(config.firebase, 'teacher');
+    db = getFirestore(teacherApp);
+    document.getElementById('classNameDisplay').textContent = cfg.className || '';
+    document.getElementById('headerClass').textContent = cfg.className || '';
+  }).catch(() => {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('noConfig').style.display = 'flex';
+  });
+} else {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('noConfig').style.display = 'flex';
 }
 
 window.login = () => {

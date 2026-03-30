@@ -44,52 +44,9 @@
         
         // 從 URL hash 讀取老師設定（教師版模式）
         let _teacherConfig = null;
-        let _teacherConfigId = null; // 用來從 Firestore 抓設定
-        try {
-            const params = new URLSearchParams(location.search);
-            const apiKey    = params.get('k');
-            const projectId = params.get('p');
-            const configId  = params.get('id');
-            if (apiKey && projectId && configId) {
-                // 新格式：?k=...&p=...&id=...，設定存在老師的 Firestore
-                _teacherConfig = {
-                    _needFetch: true,
-                    firebase: {
-                        apiKey,
-                        authDomain:    projectId + '.firebaseapp.com',
-                        projectId,
-                        storageBucket: projectId + '.firebasestorage.app',
-                    },
-                };
-                _teacherConfigId = configId;
-            } else {
-                // 舊格式 ?c=... 或 #...
-                const encoded = params.get('c') || (location.hash.length > 1 ? location.hash.slice(1) : null);
-                if (encoded) {
-                    const raw = JSON.parse(decodeURIComponent(escape(atob(encoded))));
-                    if (raw.k && raw.p) {
-                        _teacherConfig = {
-                            className:  raw.n,
-                            adminPw:    raw.pw,
-                            firebase: {
-                                apiKey:        raw.k,
-                                authDomain:    raw.p + '.firebaseapp.com',
-                                projectId:     raw.p,
-                                storageBucket: raw.p + '.firebasestorage.app',
-                            },
-                            csvChinese: raw.cc || null,
-                            csvEnglish: raw.ce || null,
-                            csvSocial:  raw.cs || null,
-                            csvScience: raw.cn || null,
-                        };
-                    } else {
-                        _teacherConfig = raw;
-                    }
-                }
-            }
-        } catch(e) {}
-        const IS_TEACHER_MODE = _teacherConfig !== null;
-        const TEACHER_CONFIG_ERROR = IS_TEACHER_MODE && !(_teacherConfig?.firebase?.apiKey);
+        let _teacherConfigId = new URLSearchParams(location.search).get('id') || null;
+        const IS_TEACHER_MODE = !!_teacherConfigId;
+        const TEACHER_CONFIG_ERROR = false; // 用中央 Firestore，不在這裡判斷錯誤
 
         const _defaultFirebaseConfig = {
           apiKey: "AIzaSyBnHKkNtvQdSoCywSCZKkwPI_dRLJNXvXg",
@@ -100,14 +57,12 @@
           appId: "1:766489842525:web:75a6ca54772ee659854eb4",
           measurementId: "G-74W13YB5H4"
         };
-        const firebaseConfig = IS_TEACHER_MODE ? (_teacherConfig?.firebase || {}) : _defaultFirebaseConfig;
-
+        // 先用預設 Firebase 初始化（不論教師模式或一般模式都先連上去）
+        // 教師模式下，loadAllDatabases 會抓到老師設定後重新初始化老師的 Firebase
         try {
-            if (!TEACHER_CONFIG_ERROR && Object.keys(firebaseConfig).length > 0) {
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-            }
+            app = initializeApp(_defaultFirebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
         } catch (e) {
             console.error("Firebase init error", e);
         }
@@ -760,10 +715,10 @@
 
             const loadAllDatabases = async () => {
                 setLoadingMsg('正在讀取雲端題庫...');
-                // 新格式：先從老師的 Firestore 抓設定
                 let chineseUrl = CHINESE_CSV_URL, englishUrl = ENGLISH_CSV_URL, socialUrl = SOCIAL_CSV_URL, scienceUrl = SCIENCE_CSV_URL;
-                if (_teacherConfig?._needFetch && _teacherConfigId && db) {
+                if (_teacherConfigId) {
                     try {
+                        // 從中央 Firestore 抓老師設定
                         const snap = await getDoc(doc(db, 'teacher_configs', _teacherConfigId));
                         if (snap.exists()) {
                             const cfg = snap.data();
@@ -771,9 +726,21 @@
                             if (cfg.csvEnglish) englishUrl = cfg.csvEnglish;
                             if (cfg.csvSocial)  socialUrl  = cfg.csvSocial;
                             if (cfg.csvScience) scienceUrl = cfg.csvScience;
-                            // 更新 _teacherConfig 讓其他地方可以用
-                            _teacherConfig.className = cfg.className;
-                            _teacherConfig.adminPw   = cfg.adminPw;
+                            // 用老師的 Firebase 重新初始化（學生存檔存到老師的 DB）
+                            if (cfg.apiKey && cfg.projectId) {
+                                try {
+                                    const teacherApp = initializeApp({
+                                        apiKey:        cfg.apiKey,
+                                        authDomain:    cfg.projectId + '.firebaseapp.com',
+                                        projectId:     cfg.projectId,
+                                        storageBucket: cfg.projectId + '.firebasestorage.app',
+                                    }, 'teacher-' + cfg.projectId);
+                                    db = getFirestore(teacherApp);
+                                    auth = getAuth(teacherApp);
+                                    await signInAnonymously(auth);
+                                } catch(e) {}
+                            }
+                            _teacherConfig = cfg; // 讓其他地方可以讀 className / adminPw
                         }
                     } catch(e) {}
                 }
