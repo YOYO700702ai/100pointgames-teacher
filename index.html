@@ -412,19 +412,17 @@ function generate() {
   resultPanel.style.display = 'block';
   resultPanel.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
-  // 用 TinyURL 縮短（不需要 API key）
+  // 用 is.gd 縮短（支援瀏覽器直接呼叫）
   document.getElementById('gameUrl').textContent  = '⏳ 縮網址中...';
   document.getElementById('adminUrl').textContent = '⏳ 縮網址中...';
-  Promise.all([
-    fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(fullGameUrl)}`).then(r => r.text()),
-    fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(fullAdminUrl)}`).then(r => r.text()),
-  ]).then(([shortGame, shortAdmin]) => {
-    document.getElementById('gameUrl').textContent  = shortGame.startsWith('http') ? shortGame : fullGameUrl;
-    document.getElementById('adminUrl').textContent = shortAdmin.startsWith('http') ? shortAdmin : fullAdminUrl;
-  }).catch(() => {
-    // 縮網址失敗就顯示原始網址
-    document.getElementById('gameUrl').textContent  = fullGameUrl;
-    document.getElementById('adminUrl').textContent = fullAdminUrl;
+  const shorten = (url) =>
+    fetch(`https://is.gd/create.php?format=simple&url=${encodeURIComponent(url)}`)
+      .then(r => r.text())
+      .then(t => (t.startsWith('https://is.gd/') ? t.trim() : url))
+      .catch(() => url);
+  Promise.all([shorten(fullGameUrl), shorten(fullAdminUrl)]).then(([shortGame, shortAdmin]) => {
+    document.getElementById('gameUrl').textContent  = shortGame;
+    document.getElementById('adminUrl').textContent = shortAdmin;
   });
 }
 
