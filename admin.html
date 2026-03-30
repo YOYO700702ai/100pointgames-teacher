@@ -100,12 +100,29 @@ tbody td { padding:9px 13px; vertical-align:middle; }
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getFirestore, collection, getDocs, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-// 從 URL hash 讀設定
+// 從 URL 讀設定（支援 ?c=... 新格式 和 #... 舊格式）
 let config = null;
 try {
-  const hash = location.hash.slice(1);
-  if (!hash) throw new Error('no hash');
-  config = JSON.parse(decodeURIComponent(escape(atob(hash))));
+  const encoded = new URLSearchParams(location.search).get('c') || location.hash.slice(1);
+  if (!encoded) throw new Error('no config');
+  const raw = JSON.parse(decodeURIComponent(escape(atob(encoded))));
+  // 支援緊湊格式
+  if (raw.k && raw.p) {
+    config = {
+      className: raw.n,
+      adminPw:   raw.pw,
+      firebase: {
+        apiKey:            raw.k,
+        authDomain:        raw.p + '.firebaseapp.com',
+        projectId:         raw.p,
+        storageBucket:     raw.p + '.firebasestorage.app',
+        messagingSenderId: raw.m,
+        appId:             raw.i,
+      },
+    };
+  } else {
+    config = raw;
+  }
 } catch(e) {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('noConfig').style.display = 'flex';

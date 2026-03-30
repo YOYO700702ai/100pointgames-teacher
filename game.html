@@ -45,8 +45,10 @@
         // 從 URL hash 讀取老師設定（教師版模式）
         let _teacherConfig = null;
         try {
-            if (location.hash && location.hash.length > 1) {
-                const raw = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(1)))));
+            // 支援 ?c=... (query string 新格式) 和 #... (hash 舊格式)
+            const encoded = new URLSearchParams(location.search).get('c') || (location.hash.length > 1 ? location.hash.slice(1) : null);
+            if (encoded) {
+                const raw = JSON.parse(decodeURIComponent(escape(atob(encoded))));
                 // 支援緊湊格式（新）與完整格式（舊）
                 if (raw.k && raw.p) {
                     // 緊湊格式：從 projectId 推導 authDomain / storageBucket

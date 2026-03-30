@@ -409,8 +409,8 @@ function generate() {
   if (customScience) compact.cn = customScience;
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(compact))));
   const base = window.location.origin + '/100pointgames-teacher';
-  const fullGameUrl  = `${base}/game.html#${encoded}`;
-  const fullAdminUrl = `${base}/admin.html#${encoded}`;
+  const fullGameUrl  = `${base}/game.html?c=${encoded}`;
+  const fullAdminUrl = `${base}/admin.html?c=${encoded}`;
 
   // 先顯示完整網址，再嘗試縮短
   document.getElementById('gameUrl').textContent  = fullGameUrl;
