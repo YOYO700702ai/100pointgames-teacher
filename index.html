@@ -336,13 +336,16 @@ body {
 
 </main>
 
-<script>
-function showError(msg) {
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+window.showError = function(msg) {
   const el = document.getElementById('errMsg');
   el.textContent = msg; el.style.display = 'block';
   document.getElementById('result-panel').style.display = 'none';
 }
-function clearError() {
+window.clearError = function() {
   document.getElementById('errMsg').style.display = 'none';
 }
 
@@ -366,20 +369,10 @@ function parseFirebaseConfig(raw) {
   } catch(e) { return null; }
 }
 
-function generate() {
+async function generate() {
   clearError();
   const className   = document.getElementById('className').value.trim();
   const adminPw     = document.getElementById('adminPw').value.trim();
-  
-  const DEFAULT_CSV_CHINESE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQkJiMnZSApC9QGpRkUajkGpB4zu3_vlRRJUnnYqQUT8mwpVC9p5feKEqv0c24OjdnWyW9BBaCv_AEp/pub?output=csv";
-  const DEFAULT_CSV_ENGLISH = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTYawqE63-aJdaU9HGx3R2hZ3gXHvQpCTXOMqW9uordFM944NwST6a06u30rj-CSTGT8JpYhynbx-Py/pub?output=csv";
-  const DEFAULT_CSV_SOCIAL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRDucdYQZqNCJiBoFnl8aJZhQpHwLnotubA4vALBeh_ckKQQtu2xRXjb6W2cebPWpzi9a53zRZ665y0/pub?output=csv";
-  const DEFAULT_CSV_SCIENCE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSuoTtan8hFBbXnaumdMOmqDsQrhlkGJlvEdgchTHxdG5G63utIpW1jtyKhkdPMT_rTaB28YWQIP3uk/pub?output=csv";
-
-  const csvChinese  = document.getElementById('csvChinese').value.trim() || DEFAULT_CSV_CHINESE;
-  const csvScience  = document.getElementById('csvScience').value.trim() || DEFAULT_CSV_SCIENCE;
-  const csvSocial   = document.getElementById('csvSocial').value.trim()  || DEFAULT_CSV_SOCIAL;
-  const csvEnglish  = document.getElementById('csvEnglish').value.trim() || DEFAULT_CSV_ENGLISH;
   const fbRaw       = document.getElementById('firebaseConfig').value.trim();
 
   if (!className) return showError('請在第一區塊填寫「班級名稱」');
@@ -390,46 +383,51 @@ function generate() {
   if (!fb || !fb.apiKey || !fb.projectId)
     return showError('Firebase 設定格式不正確，請確認有包含 apiKey 和 projectId');
 
-  // 最小格式：只存 apiKey + projectId（Firestore 不需要 appId/messagingSenderId）
-  const compact = {
-    n:  className,
-    pw: adminPw,
-    k:  fb.apiKey,
-    p:  fb.projectId,
-  };
   const customChinese = document.getElementById('csvChinese').value.trim();
   const customEnglish = document.getElementById('csvEnglish').value.trim();
   const customSocial  = document.getElementById('csvSocial').value.trim();
   const customScience = document.getElementById('csvScience').value.trim();
-  if (customChinese) compact.cc = customChinese;
-  if (customEnglish) compact.ce = customEnglish;
-  if (customSocial)  compact.cs = customSocial;
-  if (customScience) compact.cn = customScience;
-  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(compact))));
-  const base = window.location.origin + '/100pointgames-teacher';
-  const fullGameUrl  = `${base}/game.html?c=${encoded}`;
-  const fullAdminUrl = `${base}/admin.html?c=${encoded}`;
 
-  // 先顯示完整網址，再嘗試縮短
-  document.getElementById('gameUrl').textContent  = fullGameUrl;
-  document.getElementById('adminUrl').textContent = fullAdminUrl;
+  // 存到老師自己的 Firestore，URL 只帶 apiKey + projectId + 短ID
   const resultPanel = document.getElementById('result-panel');
   resultPanel.style.display = 'block';
+  document.getElementById('gameUrl').textContent  = '⏳ 儲存設定中...';
+  document.getElementById('adminUrl').textContent = '⏳ 儲存設定中...';
   resultPanel.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
-  // 用 is.gd 縮短（支援瀏覽器直接呼叫）
-  document.getElementById('gameUrl').textContent  = '⏳ 縮網址中...';
-  document.getElementById('adminUrl').textContent = '⏳ 縮網址中...';
-  const shorten = (url) =>
-    fetch(`https://is.gd/create.php?format=simple&url=${encodeURIComponent(url)}`)
-      .then(r => r.text())
-      .then(t => (t.startsWith('https://is.gd/') ? t.trim() : url))
-      .catch(() => url);
-  Promise.all([shorten(fullGameUrl), shorten(fullAdminUrl)]).then(([shortGame, shortAdmin]) => {
-    document.getElementById('gameUrl').textContent  = shortGame;
-    document.getElementById('adminUrl').textContent = shortAdmin;
-  });
+  try {
+    const app = initializeApp({
+      apiKey:        fb.apiKey,
+      authDomain:    fb.projectId + '.firebaseapp.com',
+      projectId:     fb.projectId,
+      storageBucket: fb.projectId + '.firebasestorage.app',
+    }, 'teacher-setup-' + Date.now());
+    const db = getFirestore(app);
+
+    // 用 projectId + className 當唯一 ID，同班同老師覆蓋舊設定
+    const configId = btoa(fb.projectId + '|' + className).replace(/[^a-zA-Z0-9]/g, '').slice(0, 16);
+    const configData = {
+      className, adminPw,
+      apiKey:    fb.apiKey,
+      projectId: fb.projectId,
+      csvChinese: customChinese || null,
+      csvEnglish: customEnglish || null,
+      csvSocial:  customSocial  || null,
+      csvScience: customScience || null,
+      createdAt: new Date().toISOString(),
+    };
+    await setDoc(doc(db, 'teacher_configs', configId), configData);
+
+    const base = window.location.origin + '/100pointgames-teacher';
+    const shortParam = `k=${encodeURIComponent(fb.apiKey)}&p=${encodeURIComponent(fb.projectId)}&id=${configId}`;
+    document.getElementById('gameUrl').textContent  = `${base}/game.html?${shortParam}`;
+    document.getElementById('adminUrl').textContent = `${base}/admin.html?${shortParam}`;
+  } catch(e) {
+    showError('儲存設定失敗：' + e.message + '\n請確認 Firebase 設定正確，且已開啟 Firestore。');
+  }
 }
+
+window.generate = generate;
 
 // 針對 iframe 環境優化的複製功能
 function copyUrl(id, btn) {
