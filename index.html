@@ -354,14 +354,10 @@ function clearError() {
 
 function parseFirebaseConfig(raw) {
   try {
-    const match = raw.match(/\{[\s\S]*\}/);
+    const match = raw.match(/\{[\s\S]*?\}/);
     if (!match) return null;
-    // 只替換「行首/逗號後面的 key:」，避免把字串值裡的冒號（如 appId "1:xxx:web:..."）也換掉
-    const json = match[0]
-      .replace(/([{,]\s*)(\w+)\s*:/g, '$1"$2":')
-      .replace(/'/g, '"')
-      .replace(/,\s*\}/g, '}');
-    return JSON.parse(json);
+    // 直接用 JS 執行物件字面值，避免 regex 轉換 JSON 時誤傷 appId 裡的冒號
+    return new Function('return ' + match[0])();
   } catch(e) { return null; }
 }
 
