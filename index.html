@@ -245,9 +245,6 @@ body {
           <input type="password" id="adminPw" placeholder="自訂密碼，請記住">
         </div>
       </div>
-      <div class="card-footer">
-        <button class="btn-submit" onclick="generate()">更新資訊</button>
-      </div>
     </div>
 
     <!-- 卡片 2：題庫網址設定 -->
@@ -283,9 +280,6 @@ body {
           </div>
         </div>
       </div>
-      <div class="card-footer">
-        <button class="btn-submit" onclick="generate()">儲存 CSV 網址</button>
-      </div>
     </div>
 
     <!-- 卡片 3：Firebase 資料庫設定 -->
@@ -308,15 +302,15 @@ body {
           <textarea id="firebaseConfig" placeholder="const firebaseConfig = { ... };"></textarea>
         </div>
       </div>
-      <div class="card-footer">
-        <button class="btn-submit" onclick="generate()">儲存資料庫設定</button>
-      </div>
     </div>
 
   </div>
 
   <!-- 主執行區與結果 -->
   <div class="master-action-area">
+    <div style="text-align:center; margin-bottom:16px;">
+      <button class="btn-submit" style="font-size:1.1rem; padding:16px 48px;" onclick="generate()">⚡ 產生遊戲網址</button>
+    </div>
     <div class="error-msg" id="errMsg"></div>
     
     <div id="result-panel">
