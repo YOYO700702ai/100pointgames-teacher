@@ -356,8 +356,9 @@ function parseFirebaseConfig(raw) {
   try {
     const match = raw.match(/\{[\s\S]*\}/);
     if (!match) return null;
+    // 只替換「行首/逗號後面的 key:」，避免把字串值裡的冒號（如 appId "1:xxx:web:..."）也換掉
     const json = match[0]
-      .replace(/(\w+):/g, '"$1":')
+      .replace(/([{,]\s*)(\w+)\s*:/g, '$1"$2":')
       .replace(/'/g, '"')
       .replace(/,\s*\}/g, '}');
     return JSON.parse(json);
