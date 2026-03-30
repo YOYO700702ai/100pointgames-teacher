@@ -354,11 +354,21 @@ function clearError() {
 
 function parseFirebaseConfig(raw) {
   try {
-    // 優先找 firebaseConfig = {...}，避免抓到 import { ... } 的大括號
-    let m = raw.match(/firebaseConfig\s*=\s*(\{[\s\S]*?\})/);
-    if (!m) m = raw.match(/(\{[\s\S]*?apiKey[\s\S]*?\})/);
-    if (!m) return null;
-    return new Function('return ' + (m[1] || m[0]))();
+    const get = (key) => {
+      const m = raw.match(new RegExp(key + '\\s*:\\s*["\`]([^"\`]+)["\`]'));
+      return m ? m[1] : null;
+    };
+    const apiKey = get('apiKey');
+    const projectId = get('projectId');
+    if (!apiKey || !projectId) return null;
+    return {
+      apiKey,
+      authDomain:        get('authDomain'),
+      projectId,
+      storageBucket:     get('storageBucket'),
+      messagingSenderId: get('messagingSenderId'),
+      appId:             get('appId'),
+    };
   } catch(e) { return null; }
 }
 
