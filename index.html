@@ -406,7 +406,7 @@ async function generate() {
 
   try {
     // 存到我們自己的中央 Firestore，老師不需要設定任何規則
-    const configId = btoa(fb.projectId + '|' + className).replace(/[^a-zA-Z0-9]/g, '').slice(0, 20);
+    const configId = btoa(unescape(encodeURIComponent(fb.projectId + '|' + className))).replace(/[^a-zA-Z0-9]/g, '').slice(0, 20);
     const configData = {
       className, adminPw,
       apiKey:     fb.apiKey,
