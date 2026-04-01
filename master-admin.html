@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>教師設定主控後台</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+.login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+.login-box { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 40px; width: 340px; text-align: center; }
+.login-box h1 { font-size: 1.3rem; margin-bottom: 24px; color: #94a3b8; }
+.login-box input { width: 100%; padding: 12px 16px; background: #0f172a; border: 2px solid #334155; border-radius: 10px; color: #e2e8f0; font-size: 1rem; margin-bottom: 12px; outline: none; }
+.login-box input:focus { border-color: #6366f1; }
+.btn { padding: 12px 24px; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+.btn:hover { opacity: 0.85; }
+.btn-primary { background: #6366f1; color: #fff; width: 100%; }
+.btn-danger { background: #dc2626; color: #fff; padding: 6px 14px; font-size: 0.8rem; border-radius: 8px; }
+.btn-outline { background: transparent; color: #94a3b8; border: 1px solid #334155; padding: 6px 14px; font-size: 0.8rem; border-radius: 8px; }
+.err { color: #f87171; font-size: 0.85rem; margin-top: 8px; }
+.header { background: #1e293b; border-bottom: 1px solid #334155; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
+.header h1 { font-size: 1.1rem; color: #a5b4fc; }
+.main { padding: 32px; max-width: 1100px; margin: 0 auto; }
+.stats { display: flex; gap: 16px; margin-bottom: 28px; }
+.stat-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px 28px; }
+.stat-card .num { font-size: 2rem; font-weight: 900; color: #a5b4fc; }
+.stat-card .label { font-size: 0.8rem; color: #64748b; margin-top: 4px; }
+.search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+.search-bar input { flex: 1; padding: 10px 16px; background: #1e293b; border: 1px solid #334155; border-radius: 10px; color: #e2e8f0; font-size: 0.9rem; outline: none; }
+table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 12px; overflow: hidden; border: 1px solid #334155; }
+th { background: #0f172a; padding: 12px 16px; text-align: left; font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+td { padding: 12px 16px; border-top: 1px solid #1e293b; font-size: 0.85rem; vertical-align: middle; }
+tr:hover td { background: #0f172a44; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 0.72rem; font-weight: 700; }
+.tag-csv { background: #14532d; color: #86efac; }
+.tag-default { background: #1e293b; color: #64748b; border: 1px solid #334155; }
+.empty { text-align: center; padding: 60px; color: #475569; }
+.loading { text-align: center; padding: 60px; color: #64748b; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 999; display: flex; align-items: center; justify-content: center; }
+.modal-box { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 28px; max-width: 360px; width: 90%; text-align: center; }
+.modal-box h3 { margin-bottom: 12px; }
+.modal-box p { color: #94a3b8; font-size: 0.9rem; margin-bottom: 24px; }
+.modal-actions { display: flex; gap: 10px; justify-content: center; }
+</style>
+</head>
+<body>
+
+<div id="loginWrap" class="login-wrap">
+  <div class="login-box">
+    <h1>🛡️ 主控後台登入</h1>
+    <input type="password" id="pwInput" placeholder="輸入主控密碼" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn btn-primary" onclick="doLogin()">登入</button>
+    <div id="loginErr" class="err"></div>
+  </div>
+</div>
+
+<div id="mainWrap" style="display:none">
+  <div class="header">
+    <h1>🎮 亞德雷大陸｜教師設定主控後台</h1>
+    <button class="btn btn-outline" onclick="doLogout()">登出</button>
+  </div>
+  <div class="main">
+    <div class="stats">
+      <div class="stat-card"><div class="num" id="statTotal">-</div><div class="label">教師設定總數</div></div>
+      <div class="stat-card"><div class="num" id="statCsv">-</div><div class="label">使用自訂題庫</div></div>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="搜尋班級名稱 / projectId..." oninput="renderTable()">
+      <button class="btn btn-outline" onclick="loadData()">🔄 重新整理</button>
+    </div>
+    <div id="tableWrap"><div class="loading">載入中...</div></div>
+  </div>
+</div>
+
+<div id="confirmModal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <h3>⚠️ 確認刪除</h3>
+    <p id="confirmMsg"></p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">確認刪除</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, getDocs, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const MASTER_PW = 'yoyo-master-2024'; // 主控密碼，可以自己改
+const app = initializeApp({
+  apiKey: "AIzaSyBnHKkNtvQdSoCywSCZKkwPI_dRLJNXvXg",
+  authDomain: "rpggame-7ae09.firebaseapp.com",
+  projectId: "rpggame-7ae09",
+  storageBucket: "rpggame-7ae09.firebasestorage.app",
+});
+const db = getFirestore(app);
+
+let allDocs = [];
+let deleteTargetId = null;
+
+window.doLogin = function() {
+  const pw = document.getElementById('pwInput').value;
+  if (pw === MASTER_PW) {
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('mainWrap').style.display = 'block';
+    loadData();
+  } else {
+    document.getElementById('loginErr').textContent = '密碼錯誤';
+  }
+};
+
+window.doLogout = function() {
+  document.getElementById('loginWrap').style.display = 'flex';
+  document.getElementById('mainWrap').style.display = 'none';
+  document.getElementById('pwInput').value = '';
+};
+
+window.loadData = async function() {
+  document.getElementById('tableWrap').innerHTML = '<div class="loading">載入中...</div>';
+  try {
+    const snap = await getDocs(collection(db, 'teacher_configs'));
+    allDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    allDocs.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    const csvCount = allDocs.filter(d => d.csvChinese || d.csvEnglish || d.csvSocial || d.csvScience).length;
+    document.getElementById('statTotal').textContent = allDocs.length;
+    document.getElementById('statCsv').textContent = csvCount;
+    renderTable();
+  } catch(e) {
+    document.getElementById('tableWrap').innerHTML = `<div class="empty">載入失敗：${e.message}</div>`;
+  }
+};
+
+window.renderTable = function() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const rows = allDocs.filter(d =>
+    (d.className || '').toLowerCase().includes(q) ||
+    (d.projectId || '').toLowerCase().includes(q)
+  );
+  if (rows.length === 0) {
+    document.getElementById('tableWrap').innerHTML = '<div class="empty">沒有找到任何設定</div>';
+    return;
+  }
+  const hasCsv = (d) => d.csvChinese || d.csvEnglish || d.csvSocial || d.csvScience;
+  document.getElementById('tableWrap').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>班級名稱</th>
+        <th>projectId</th>
+        <th>題庫</th>
+        <th>建立時間</th>
+        <th>操作</th>
+      </tr></thead>
+      <tbody>
+        ${rows.map(d => `
+          <tr>
+            <td><strong>${d.className || '（未命名）'}</strong></td>
+            <td style="color:#64748b;font-size:0.8rem">${d.projectId || '-'}</td>
+            <td>${hasCsv(d)
+              ? '<span class="tag tag-csv">自訂題庫</span>'
+              : '<span class="tag tag-default">預設</span>'}</td>
+            <td style="color:#64748b;font-size:0.8rem">${d.createdAt ? d.createdAt.slice(0,10) : '-'}</td>
+            <td><button class="btn btn-danger" onclick="askDelete('${d.id}','${(d.className||'').replace(/'/g,"\\'")}')">刪除</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+};
+
+window.askDelete = function(id, name) {
+  deleteTargetId = id;
+  document.getElementById('confirmMsg').textContent = `確定要刪除「${name}」的設定嗎？刪除後老師的遊戲網址將失效。`;
+  document.getElementById('confirmModal').style.display = 'flex';
+};
+
+window.closeConfirm = function() {
+  deleteTargetId = null;
+  document.getElementById('confirmModal').style.display = 'none';
+};
+
+window.confirmDelete = async function() {
+  if (!deleteTargetId) return;
+  try {
+    await deleteDoc(doc(db, 'teacher_configs', deleteTargetId));
+    allDocs = allDocs.filter(d => d.id !== deleteTargetId);
+    document.getElementById('statTotal').textContent = allDocs.length;
+    document.getElementById('statCsv').textContent = allDocs.filter(d => d.csvChinese || d.csvEnglish || d.csvSocial || d.csvScience).length;
+    closeConfirm();
+    renderTable();
+  } catch(e) {
+    alert('刪除失敗：' + e.message);
+  }
+};
+</script>
+</body>
+</html>
