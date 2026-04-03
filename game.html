@@ -393,6 +393,8 @@
             });
             const [moleHitCells, setMoleHitCells] = useState([]);
             const [tutorialStep, setTutorialStep] = useState(null);
+            const [faqOpen, setFaqOpen] = useState(false);
+            const [faqExpanded, setFaqExpanded] = useState(null);
 
             // --- 動物大逃亡華容道狀態 ---
             const [slidingGame, setSlidingGame] = useState({
@@ -1782,7 +1784,7 @@
                                 </div>
 
                                 <div className="mt-auto flex flex-col gap-1 mb-2">
-                                <button className="w-7 h-7 self-end text-sm bg-[#7986CB] text-white font-bold rounded-full shadow-[0_2px_0_#3949ab] active:scale-95 transition-transform" onClick={() => showMessage('❓ 通關小提示', '1️⃣ 五個關卡都要過一次，才能找哥布林商人換鑰匙！\n\n2️⃣ 星願永恆宮的關卡，沒有神獸當寵物是過不去的！\n\n3️⃣ 有空多逛逛商店，裡面有好東西喔～\n\n💾 每次離開都要記得存檔唷！', '💡')}>?</button>
+                                <button className="w-full p-1.5 text-sm bg-[#7986CB] text-white font-bold rounded-lg shadow-[0_3px_0_#3949ab] active:scale-95 transition-transform" onClick={() => { setFaqOpen(true); setFaqExpanded(null); }}>📖 教學</button>
                                 {scene !== 'equipment' && (
                                 <button className="w-full p-1.5 text-sm bg-[#FF9F1C] text-white font-bold rounded-lg shadow-[0_3px_0_#b87114] active:scale-95 transition-transform" onClick={() => { setPrevScene(scene); setScene('equipment'); }}>
                                     🎒 背包
@@ -2219,7 +2221,7 @@
                                     <div className="absolute top-[62%] left-[48%] w-[10%] h-[22%] cursor-pointer z-10 rounded-2xl  -translate-x-1/2 -translate-y-1/2" onClick={() => { if (!player.villageTalked) { setPlayer(prev => ({ ...prev, villageTalked: true })); showMessage('村長', '哀呀？又是地球的客人嗎？\n想回家？我也不太清楚...\n不過聽說打倒星願永恆宮的魔王們，就會知道線索了！\n不過魔王的關卡聽說都是不可能過關的呢...\n除非，你能找到傳說中的五隻神獸．．．', '👴'); } else { const lines = ['聽說永恆宮的關卡一般人是不可能過關的...', '聽說有神獸當寵物的話可以通過永恆宮的五個守門人關卡！', '咦？又是從異世界來的陌生人嗎？', '好像有人看到商店老闆偷偷把一些蛋塞進轉蛋機了...', '你好陌生人，歡迎來到這個考試的天堂！']; showMessage('村長', lines[Math.floor(Math.random() * lines.length)], '👴'); } }}></div>
                                     <div className="absolute top-[50%] left-[66%] w-[22%] h-[45%] cursor-pointer z-10 rounded-2xl  -translate-x-1/2 -translate-y-1/2" onClick={rollGacha} title={player.gachaUnlocked ? "花費 1 轉蛋幣抽一次" : "上鎖的轉蛋機"}></div>
                                     <div className="absolute top-[65%] left-[82%] w-[10%] h-[25%] cursor-pointer z-10 rounded-2xl  -translate-x-1/2 -translate-y-1/2" onClick={() => openShop('merchant')}></div>
-                                    <button className="absolute bottom-5 left-5 z-100 bg-transparent text-[#FF5722] font-black text-2xl font-[Comic Sans MS] hover:scale-110 hover:-translate-x-1 transition-all" style={{textShadow: "2px 2px 0px #FFF, -2px -2px 0px #FFF, 2px -2px 0px #FFF, -2px 2px 0px #FFF, 0px 4px 4px rgba(0,0,0,0.3)"}} onClick={() => setScene('map')}>⬅ 離開村子</button>
+                                    <button className="absolute bottom-5 left-5 z-100 bg-transparent text-[#FF5722] font-black text-2xl font-[Comic Sans MS] hover:scale-110 hover:-translate-x-1 transition-all" style={{textShadow: "2px 2px 0px #FFF, -2px -2px 0px #FFF, 2px -2px 0px #FFF, -2px 2px 0px #FFF, 0px 4px 4px rgba(0,0,0,0.3)"}} onClick={() => setScene('map')}>⬅ 前往大地圖</button>
                                     <button className="absolute bottom-5 right-5 z-100 bg-transparent text-[#FFAB91] font-black text-2xl font-[Comic Sans MS] hover:scale-110 hover:translate-x-1 transition-all" style={{textShadow: "2px 2px 0px #FFF, -2px -2px 0px #FFF, 2px -2px 0px #FFF, -2px 2px 0px #FFF, 0px 4px 4px rgba(0,0,0,0.3)"}} onClick={() => setScene('chicken_farm')}>往雞舍 ➡</button>
                                 </div>
                             )}
@@ -2756,6 +2758,45 @@
                                             )}
                                         </div>
                                     </div>
+                                );
+                            })()}
+
+                            {faqOpen && (() => {
+                                const FAQ = [
+                                    { q: '如何開始遊戲？', a: '點開包包 → 裝備武器 → 前往大地圖 → 點擊五大地區開始答題打怪！！！' },
+                                    { q: '轉蛋雞鑰匙在哪裡？', a: '在沙漠區域通關有機會拿到！' },
+                                    { q: '星願永恆宮怎麼進入？', a: '拿到五個關卡的通關證明後，去找哥布林商人買鑰匙，就能打開永恆宮的門！' },
+                                    { q: '星願永恆宮的關卡好難！', a: '因為沒有裝備對應的神獸寵物是沒辦法通關的喔！神獸寵物都藏在轉蛋雞裡！' },
+                                    { q: '抽到寵物蛋要怎麼孵化？', a: '到養雞場把蛋放進去，並且餵食營養劑唷！' },
+                                    { q: '怎麼賺錢？', a: '打怪！收集五個通關證明可以到哥布林商人那邊換錢，並且有些道具跟寵物有機會讓你的金幣更多！可以去試試看！' },
+                                    { q: '關卡說沒有怪了怎麼辦？', a: '那是你打太多次同一個關卡了！要先收集至少一組五通關證明去哥布林那邊換掉，才能繼續打同一個關卡。不可以偏科刷錢！' },
+                                    { q: '通關證明要幹嗎？', a: '集齊五個通關證明 → 去找哥布林商人 → 可以換錢或換取「奇怪的鑰匙」進入星願永恆宮！' },
+                                    { q: '死掉剩一滴血怎麼辦？', a: '去商店購買紅藥水 → 打開包包 → 喝水補血！記得存檔唷！' },
+                                ];
+                                const sel = faqExpanded !== null ? faqExpanded : 0;
+                                return (
+                                <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[200]" onClick={() => setFaqOpen(false)}>
+                                    <div className="bg-white rounded-[20px] shadow-[0_10px_25px_rgba(0,0,0,0.3)] w-[92%] max-w-[420px] max-h-[80vh] flex flex-col overflow-hidden anim-popIn" onClick={e => e.stopPropagation()}>
+                                        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
+                                            <h2 className="text-lg font-black text-[#333]">📖 新手教學</h2>
+                                            <button className="text-gray-400 text-xl font-bold" onClick={() => setFaqOpen(false)}>✕</button>
+                                        </div>
+                                        <div className="flex flex-1 overflow-hidden min-h-0">
+                                            <div className="w-[42%] border-r border-gray-100 overflow-y-auto flex flex-col shrink-0">
+                                                {FAQ.map((item, i) => (
+                                                    <button key={i}
+                                                        className={`w-full text-left px-3 py-3 text-[0.75rem] font-bold border-b border-gray-100 leading-snug ${sel === i ? 'bg-indigo-50 text-indigo-700' : 'text-[#444] bg-white active:bg-gray-50'}`}
+                                                        onClick={() => setFaqExpanded(i)}>
+                                                        {item.q}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <div className="flex-1 overflow-y-auto p-4 text-[0.85rem] text-[#555] leading-relaxed">
+                                                {FAQ[sel].a}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 );
                             })()}
 
